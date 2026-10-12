@@ -1,0 +1,358 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10121c">
+<title>SkyRush | Crash Game Demo</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#10121c;
+  --panel:#1a1e2c;
+  --red:#ff4d5a;
+  --green:#20d89a;
+  --muted:#a6aec2;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:#fff;
+  font-family:system-ui,-apple-system,Arial,sans-serif;
+}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+header{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;padding:17px 16px;border-bottom:1px solid #292d3b;
+}
+.logo{font-size:22px;font-weight:900;letter-spacing:1px}
+.logo span{color:var(--red)}
+.demo{font-size:11px;color:var(--muted)}
+main{max-width:650px;margin:auto;padding:15px}
+.balance{
+  background:var(--panel);border:1px solid #2a3042;
+  border-radius:14px;padding:15px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.label{color:var(--muted);font-size:12px}
+.amount{font-size:21px;font-weight:800}
+#arena{
+  position:relative;overflow:hidden;height:300px;
+  margin:14px 0;background:
+  radial-gradient(ellipse at 50% 110%,#293b62 0%,transparent 60%),
+  linear-gradient(180deg,#181e31,#111522 75%);
+  border:1px solid #2b3042;border-radius:18px;
+}
+#arena:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(#ffffff08 1px,transparent 1px),
+  linear-gradient(90deg,#ffffff08 1px,transparent 1px);
+  background-size:35px 35px;
+}
+#multiplier{
+  position:absolute;z-index:2;top:33%;left:0;width:100%;
+  text-align:center;font-size:clamp(38px,12vw,62px);
+  font-weight:900;letter-spacing:-2px;
+}
+#status{
+  position:absolute;z-index:3;top:57%;left:0;width:100%;
+  text-align:center;font-size:13px;color:var(--muted);
+}
+#flightPath{
+  position:absolute;inset:0;width:100%;height:100%;z-index:1;
+}
+#plane{
+  position:absolute;z-index:2;left:8%;bottom:18px;
+  font-size:36px;transform:rotate(-12deg);
+  filter:drop-shadow(0 0 12px #ff4d5a88);
+}
+.controls{
+  padding:16px;background:var(--panel);
+  border:1px solid #2a3042;border-radius:16px;
+}
+.sectionTitle{font-size:13px;color:var(--muted);margin-bottom:8px}
+.betRow{display:flex;gap:9px;align-items:center}
+input{
+  min-width:0;width:100%;padding:12px;
+  border:1px solid #343b50;background:#111522;
+  color:white;border-radius:10px;
+}
+.smallButton{
+  padding:10px 12px;background:#2b3042;color:white;
+  border:0;border-radius:9px;
+}
+.betButtons{display:flex;gap:7px;margin-top:9px}
+.betButtons button{flex:1}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}
+.action{
+  border:0;border-radius:11px;padding:15px 8px;
+  font-weight:850;color:white;
+}
+#start{background:var(--red)}
+#cashout{background:#12a978}
+.notice{font-size:11px;color:var(--muted);line-height:1.5}
+.history{margin-top:16px;background:var(--panel);
+border-radius:14px;padding:15px}
+.historyTop{display:flex;justify-content:space-between;gap:8px}
+#historyList{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.chip{border-radius:20px;padding:7px 11px;
+background:#282d3d;font-size:12px;font-weight:750}
+.low{color:#ff7580}
+.high{color:#48e0ad}
+footer{text-align:center;padding:18px;color:var(--muted);font-size:11px}
+@media(max-width:380px){
+  main{padding:10px}
+  #arena{height:260px}
+  .amount{font-size:18px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">SKY<span>RUSH</span></div>
+  <div class="demo">PRACTICE MODE · VIRTUAL COINS</div>
+</header>
+
+<main>
+  <section class="balance">
+    <div>
+      <div class="label">YOUR DEMO BALANCE</div>
+      <div class="amount"><span id="balance">1000</span> <span class="label">COINS</span></div>
+    </div>
+    <button class="smallButton" id="reset">Reset demo</button>
+  </section>
+
+  <section id="arena" aria-label="Crash game animation">
+    <svg id="flightPath" viewBox="0 0 600 300"
+         preserveAspectRatio="none">
+      <path id="trail" d="" fill="none" stroke="#ff5966"
+        stroke-width="3" stroke-linecap="round"/>
+    </svg>
+    <div id="multiplier">1.00×</div>
+    <div id="status">Ready for takeoff</div>
+    <div id="plane">✈️</div>
+  </section>
+
+  <section class="controls">
+    <div class="sectionTitle">BET AMOUNT · VIRTUAL COINS</div>
+    <div class="betRow">
+      <input id="bet" type="number" min="1" max="1000"
+        step="1" value="50" aria-label="Virtual bet amount">
+    </div>
+    <div class="betButtons">
+      <button class="smallButton" data-add="25">+25</button>
+      <button class="smallButton" data-add="50">+50</button>
+      <button class="smallButton" data-add="100">+100</button>
+      <button class="smallButton" id="maxBet">MAX</button>
+    </div>
+
+    <div class="actions">
+      <button class="action" id="start">START ROUND</button>
+      <button class="action" id="cashout" disabled>
+        CASH OUT
+      </button>
+    </div>
+    <p class="notice">
+      Practice only. No deposits, real-money wagers or cash prizes.
+      The round outcome is generated locally for demonstration and
+      is not a certified provably-fair system.
+    </p>
+  </section>
+
+  <section class="history">
+    <div class="historyTop">
+      <strong>Recent rounds</strong>
+      <span class="label">LATEST FIRST</span>
+    </div>
+    <div id="historyList">
+      <span class="label">Play a round to see history.</span>
+    </div>
+  </section>
+</main>
+
+<footer>SKYRUSH DEMO · Virtual coins have no cash value.</footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  let balance = 1000;
+  let active = false;
+  let cashedOut = false;
+  let bet = 0;
+  let startTime = 0;
+  let crashAt = 0;
+  let raf = 0;
+  let lastMultiplier = 1;
+  let history = [];
+
+  const plane = $("plane");
+  const arena = $("arena");
+  const trail = $("trail");
+
+  function money(n) {
+    return Math.floor(n).toLocaleString("en-US");
+  }
+
+  function showBalance() {
+    $("balance").textContent = money(balance);
+    $("maxBet").disabled = active || balance < 1;
+  }
+
+  function setStatus(text) {
+    $("status").textContent = text;
+  }
+
+  function recordRound(value, result) {
+    history.unshift({value, result});
+    history = history.slice(0, 8);
+
+    $("historyList").replaceChildren();
+    history.forEach(item => {
+      const chip = document.createElement("span");
+      chip.className = "chip " +
+        (item.result === "win" ? "high" : "low");
+      chip.textContent = item.value.toFixed(2) + "×";
+      $("historyList").appendChild(chip);
+    });
+  }
+
+  function resetPlane() {
+    plane.style.left = "8%";
+    plane.style.bottom = "18px";
+    plane.style.transform = "rotate(-12deg)";
+    trail.setAttribute("d", "");
+    $("multiplier").style.color = "#fff";
+    $("multiplier").textContent = "1.00×";
+  }
+
+  function endRound(message) {
+    active = false;
+    cancelAnimationFrame(raf);
+    $("start").disabled = false;
+    $("cashout").disabled = true;
+    $("bet").disabled = false;
+    showBalance();
+    setStatus(message);
+  }
+
+  function animate() {
+    if (!active) return;
+
+    const elapsed = (performance.now() - startTime) / 1000;
+    const m = Math.exp(elapsed * 0.22);
+    lastMultiplier = m;
+
+    if (m >= crashAt) {
+      $("multiplier").textContent = "CRASH!";
+      $("multiplier").style.color = "#ff5966";
+      plane.style.transform = "rotate(50deg) scale(.8)";
+      recordRound(crashAt, "loss");
+      endRound("Plane crashed · virtual bet lost");
+      return;
+    }
+
+    $("multiplier").textContent = m.toFixed(2) + "×";
+
+    const w = arena.clientWidth;
+    const h = arena.clientHeight;
+    const x = Math.min(w * 0.8, w * (0.08 + elapsed * 0.12));
+    const y = Math.max(h * 0.14, h - 38 - elapsed * 28);
+
+    plane.style.left = x + "px";
+    plane.style.bottom = (h - y - 35) + "px";
+    trail.setAttribute("d",
+      `M ${w * 0.08} ${h - 24} Q ${w * 0.25} ${h * 0.92} ${x} ${y}`);
+
+    raf = requestAnimationFrame(animate);
+  }
+
+  $("start").addEventListener("click", () => {
+    if (active) return;
+
+    const amount = Number($("bet").value);
+    if (!Number.isSafeInteger(amount) ||
+        amount < 1 || amount > balance) {
+      setStatus("Enter a whole-number bet within your balance.");
+      return;
+    }
+
+    bet = amount;
+    balance -= bet;
+    active = true;
+    cashedOut = false;
+    startTime = performance.now();
+
+    // Demo-only random outcome. Not suitable for real-money use.
+    crashAt = 1 + Math.random() * 9;
+
+    resetPlane();
+    showBalance();
+    $("start").disabled = true;
+    $("cashout").disabled = false;
+    $("bet").disabled = true;
+    setStatus("Plane is flying...");
+    raf = requestAnimationFrame(animate);
+  });
+
+  $("cashout").addEventListener("click", () => {
+    if (!active || cashedOut) return;
+
+    // Recheck elapsed time so a stale display cannot be used.
+    const elapsed = (performance.now() - startTime) / 1000;
+    const m = Math.exp(elapsed * 0.22);
+
+    if (m >= crashAt) {
+      lastMultiplier = crashAt;
+      $("multiplier").textContent = "CRASH!";
+      recordRound(crashAt, "loss");
+      endRound("Too late · virtual bet lost");
+      return;
+    }
+
+    cashedOut = true;
+    const payout = Math.floor(bet * m);
+    balance += payout;
+
+    recordRound(m, "win");
+    endRound("Cashed out at " + m.toFixed(2) + "× · +" +
+      money(payout) + " virtual coins");
+  });
+
+  document.querySelectorAll("[data-add]").forEach(button => {
+    button.addEventListener("click", () => {
+      if (active) return;
+      const input = $("bet");
+      input.value = Math.min(balance,
+        Math.max(1, Number(input.value) || 0) +
+        Number(button.dataset.add));
+    });
+  });
+
+  $("maxBet").addEventListener("click", () => {
+    if (!active) $("bet").value = balance;
+  });
+
+  $("reset").addEventListener("click", () => {
+    if (active) {
+      setStatus("Finish the current round before resetting.");
+      return;
+    }
+    balance = 1000;
+    history = [];
+    $("historyList").innerHTML =
+      '<span class="label">Play a round to see history.</span>';
+    $("bet").value = 50;
+    resetPlane();
+    showBalance();
+    setStatus("Demo reset · ready for takeoff");
+  });
+
+  resetPlane();
+  showBalance();
+})();
+</script>
+</body>
+</html>
